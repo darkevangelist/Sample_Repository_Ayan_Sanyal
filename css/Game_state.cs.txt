@@ -1,0 +1,194 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class GameState : MonoBehaviour {
+
+
+
+	public enum GameStates
+	{
+		Menu,
+		Ingame,
+		Quit,
+		GameOver,
+		Pause,
+		Failure
+	}
+
+	GameStates currentState = GameStates.Menu;
+
+
+	// Use an easy Singleton pattern
+	public static GameState Instance;
+
+	public bool is_invicible = false;
+	public bool is_slow = false;
+    public bool mech_normal;
+    public bool mech_push = false;
+    public float speed;
+
+	void Awake()
+	{
+		// Checking if instance is already set
+		if (Instance == null)
+		{
+
+			// Make this the Instance
+			Instance = this;
+			DontDestroyOnLoad(gameObject);
+		}
+		else
+		{
+			// Instance is already set.
+			GameObject.Destroy(gameObject);
+		}
+	}
+
+    private void Start()
+    {
+        mech_normal = true;
+        speed = 10;
+    }
+
+
+    /// <summary>
+    /// function to call a State change
+    /// </summary>
+    /// <param name="requestedState">Requested state.</param>
+    public void TryChangeState(GameStates requestedState)
+	{
+		Debug.Log("Trying to switch from "
+			+ currentState.ToString()
+			+ " to "
+			+ requestedState.ToString());
+
+		if (requestedState == currentState) {
+			Debug.LogWarning ("Already in state " + requestedState.ToString ());
+
+			return;
+		}
+
+		//when changing to the Menu Gamestate
+		else if (requestedState == GameStates.Menu) {
+
+			Debug.Log ("Gamestate: Menu");
+			Debug.Log ("Changing to Menu Scene");
+
+
+			ChangeToMenu ();
+
+		} else if (currentState == GameStates.Menu && requestedState == GameStates.Ingame) {
+			
+			Debug.Log ("Gamestate: Ingame");
+			Debug.Log ("Changing to Game Scene");
+            Debug.Log("Speed = " + speed);
+            Debug.Log("MechPush" + mech_push);
+            Debug.Log("MechNormal" + mech_normal);
+
+            if (mech_normal)
+            {
+                SceneManager.LoadScene(2);
+            }
+
+            if (mech_push)
+            {
+                SceneManager.LoadScene(3);
+            }
+
+
+			currentState = GameStates.Ingame;
+
+
+		} else if (currentState == GameStates.Pause && requestedState == GameStates.Ingame) {
+
+			Debug.Log ("Gamestate: Ingame");
+			Debug.Log ("Changing to Game");
+
+			GameObject player = GameObject.FindGameObjectWithTag ("Player");
+
+			// enabling his movement
+			player.GetComponent<PlayerMovement> ().enabled = true;
+
+			IngameUI ingameUI = GameObject.FindGameObjectWithTag ("IngameCanvas").GetComponent<IngameUI> ();
+
+			ingameUI.ClosePauseMenu ();
+		
+
+			currentState = GameStates.Ingame;
+		}
+
+		else if (requestedState == GameStates.Pause) {
+
+			Debug.Log ("Gamestate: Pause");
+			Debug.Log ("Changing to Pause Menu");
+
+			GameObject player = GameObject.FindGameObjectWithTag ("Player");
+
+			// stopping his movement
+			player.GetComponent<PlayerMovement> ().enabled = false;
+
+			IngameUI ingameUI = GameObject.FindGameObjectWithTag ("IngameCanvas").GetComponent<IngameUI> ();
+
+			ingameUI.DisplayPauseMenu ();
+
+			currentState = GameStates.Pause;
+
+
+
+
+		}
+
+		else if (requestedState == GameStates.GameOver) {
+
+			Debug.Log ("Gamestate: GameOver");
+
+			// finding the player 
+			GameObject player = GameObject.FindGameObjectWithTag ("Player");
+
+			// stopping his movement
+			player.GetComponent<PlayerMovement> ().enabled = false;
+
+
+			// Finding the IngameUI script
+			IngameUI ingameUI = GameObject.FindGameObjectWithTag ("IngameCanvas").GetComponent<IngameUI> ();
+			ingameUI.SaveNewHighscore ();
+			ingameUI.DisplayGameOver ();
+			 
+			Invoke("ChangeToMenu" , 3);
+		}
+
+
+		else if (requestedState == GameStates.Quit) {
+
+			Debug.Log ("Gamestate: Quit");
+			Debug.Log ("Closing Game");
+
+			Application.Quit ();
+
+		}
+
+
+
+
+	}
+
+	public void ChangeToGame(){
+
+		//SceneManager.LoadScene ("Game");
+		SceneManager.LoadScene (1);
+
+		currentState = GameStates.Ingame;
+	}
+	public void ChangeToMenu(){
+
+
+		SceneManager.LoadScene (0);
+
+		Debug.Log ("Gamestate: Menu");
+		Debug.Log ("Changing to Menu Scene");
+		currentState = GameStates.Menu;
+	}
+
+}
