@@ -11,5 +11,5 @@ The todo list of practical tasks for the project.
 ### [Process Journal](./process-journal.md)
 A journal that includes high-level reflections on the design and development process, intended to be complementary to the [commit history of the repository](https://github.com/darkevangelist/Sample_Repository_Ayan_Sanyal/commits/master).
 
-### Research Questions (tbd)
+### Research Questions (./research-question.md)
 Attempts to frame what's meaningful about this project.
